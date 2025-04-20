@@ -51,6 +51,7 @@ struct SettingsView: View {
                 }
                 
                 SettingsButton(title: "Restore Purchases") {
+                    // couldn't implement since i don't have paid dev account yet
                     
                     print("Restore purchases tapped")
                 }

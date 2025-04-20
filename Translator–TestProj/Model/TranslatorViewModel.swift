@@ -22,6 +22,7 @@ class TranslatorViewModel: ObservableObject {
     @Published var selectedPet: Pet = .cat
     @Published var recognitionState: RecognitionState = .idle
     
+    // request user permission
     func authorize(completion: @escaping (Bool) -> Void) {
         SFSpeechRecognizer.requestAuthorization { status in
             DispatchQueue.main.async {
@@ -30,12 +31,15 @@ class TranslatorViewModel: ObservableObject {
         }
     }
     
+    // start recognition session
     func startRecognition() {
-        stopRecognition()
+        stopRecognition() // clean up previous session (if any)
+        
         let engine = AVAudioEngine()
         self.audioEngine = engine
         
         do {
+            // configure audio session
             let session = AVAudioSession.sharedInstance()
             try session.setCategory(.record, mode: .measurement, options: .duckOthers)
             try session.setActive(true, options: .notifyOthersOnDeactivation)
@@ -51,6 +55,7 @@ class TranslatorViewModel: ObservableObject {
         
         request.shouldReportPartialResults = true
         
+        // configure input
         let inputNode = engine.inputNode
         let format = inputNode.outputFormat(forBus: 0)
         inputNode.removeTap(onBus: 0)
@@ -58,6 +63,7 @@ class TranslatorViewModel: ObservableObject {
             self.request?.append(buffer)
         }
         
+        // start recognition task and update as results appear
         task = recognizer?.recognitionTask(with: request) { [weak self] result, error in
             guard let self = self else { return }
             if let result = result {
@@ -66,6 +72,8 @@ class TranslatorViewModel: ObservableObject {
                     self.recognizedText = transcript
                 }
             }
+            
+            // update state when finished or error appeared
             if result?.isFinal == true || error != nil || result == nil {
                 DispatchQueue.main.async {
                     self.recognitionState = .processing
@@ -80,15 +88,19 @@ class TranslatorViewModel: ObservableObject {
         }
     }
     
+    // stop recognition session
     func stopRecognition() {
         audioEngine?.stop()
         audioEngine?.inputNode.removeTap(onBus: 0)
+        
         request?.endAudio()
         task?.cancel()
+        
         audioEngine = nil
         request = nil
         task = nil
         
+        // restore audio session
         let session = AVAudioSession.sharedInstance()
         do {
             try session.setActive(false, options: .notifyOthersOnDeactivation)
@@ -101,6 +113,7 @@ class TranslatorViewModel: ObservableObject {
     // play audio
     private var audioPlayer: AVAudioPlayer?
     
+    // selects random sound and plays it
     func playRandomPetSound() {
         guard let randomSound = selectedPet.sounds.randomElement(),
               let url = Bundle.main.url(forResource: randomSound, withExtension: "wav") else { return }

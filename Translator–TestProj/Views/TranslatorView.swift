@@ -30,6 +30,7 @@ struct TranslatorView: View {
                     }
             } else {
                 
+                // shows recognized text only in human to pet mode 
                 if viewModel.isHumanToPet {
                     Text(viewModel.recognizedText.isEmpty ? "" : viewModel.recognizedText)
                         .font(.caption)

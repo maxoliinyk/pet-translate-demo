@@ -13,9 +13,11 @@ struct RecognitionTile: View {
 
     var body: some View {
         VStack {
+            // shows different tile ui depending on recognition state
             switch viewModel.recognitionState {
             case .idle:
                 Button {
+                    // check if recognition + mic usage is allowed
                     viewModel.authorize { authorized in
                         if authorized {
                             withAnimation { viewModel.recognitionState = .listening }

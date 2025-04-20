@@ -18,6 +18,7 @@ struct ContentView: View {
                 
                 Spacer()
                 
+                // switch between views based on the selected tab
                 Group {
                     switch viewModel.selectedTab {
                         case .translator: TranslatorView()
